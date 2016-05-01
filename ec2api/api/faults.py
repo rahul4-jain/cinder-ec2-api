@@ -87,13 +87,6 @@ class Fault(webob.exc.HTTPException):
         code = ec2api.api.exception_to_ec2code(self.wrapped_exc)
         status = self.wrapped_exc.status_int
         message = self.wrapped_exc.explanation
-        try:
-            metric_util = MetricUtil()
-            metric = metric_util.fetch_thread_local_metrics()
-            metrics.add_property("code", code)
-        except Exception as e:
-            LOG.error("Exception", e)
-        #TODO: think whether adding message makes a lot of sense here.
 
         if status == 501:
             message = "The requested function is not supported"
