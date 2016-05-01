@@ -21,6 +21,7 @@ import webob.exc
 
 import ec2api.api
 from ec2api import context
+from metrics.metric_util import MetricUtil
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
@@ -60,6 +61,15 @@ def ec2_error_response(request_id, code, message, status=500):
                     (xhtml_escape(utf8(code)),
                      xhtml_escape(utf8(message)),
                      xhtml_escape(utf8(request_id))))
+    try:
+        metric_util = MetricUtil()
+        metrics = metric_util.fetch_thread_local_metrics()
+        metrics.add_property("code", code)
+        metrics.add_count(code, 1)
+    except Exception as e:
+        LOG.error("Error in retrieving metrics:")
+        LOG.exception(e)
+    #TODO: think whether adding message makes a lot of sense here.
     return resp
 
 
@@ -77,6 +87,13 @@ class Fault(webob.exc.HTTPException):
         code = ec2api.api.exception_to_ec2code(self.wrapped_exc)
         status = self.wrapped_exc.status_int
         message = self.wrapped_exc.explanation
+        try:
+            metric_util = MetricUtil()
+            metric = metric_util.fetch_thread_local_metrics()
+            metrics.add_property("code", code)
+        except Exception as e:
+            LOG.error("Exception", e)
+        #TODO: think whether adding message makes a lot of sense here.
 
         if status == 501:
             message = "The requested function is not supported"
