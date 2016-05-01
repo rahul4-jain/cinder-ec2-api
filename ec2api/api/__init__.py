@@ -237,7 +237,6 @@ class EC2KeystoneAuth(wsgi.Middleware):
         metrics.add_property("UserId",  user_id)
         metrics.add_property("RemoteAddress", req.remote_addr)
         metrics.add_property("RequestId", request_id)
-        #metrics.add_property("PathInfo", path_info)
         metrics.add_property("OperationName", action)
 
         if (not token_id) or (not user_id) or (not project_id) :
