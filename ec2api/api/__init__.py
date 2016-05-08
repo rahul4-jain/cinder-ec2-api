@@ -232,12 +232,16 @@ class EC2KeystoneAuth(wsgi.Middleware):
         action = req.params.get('Action')
         if not request_id:
             request_id = context.generate_request_id()
-        metrics = MetricUtil().fetch_thread_local_metrics()
-        metrics.add_property("ProjectId",  project_id)
-        metrics.add_property("UserId",  user_id)
-        metrics.add_property("RemoteAddress", req.remote_addr)
-        metrics.add_property("RequestId", request_id)
-        metrics.add_property("OperationName", action)
+        try:
+            metrics = MetricUtil().fetch_thread_local_metrics()
+            metrics.add_property("ProjectId",  project_id)
+            metrics.add_property("UserId",  user_id)
+            metrics.add_property("RemoteAddress", req.remote_addr)
+            metrics.add_property("RequestId", request_id)
+            metrics.add_property("OperationName", action)
+        except Exception as e:
+            LOG.error("Error in retrieving metrics:")
+            LOG.exception(e)
 
         if (not token_id) or (not user_id) or (not project_id) :
             msg = _("Missing Authorization Credentials.")
